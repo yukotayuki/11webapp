@@ -10,6 +10,7 @@ proc write_line(sock: Socket, data: string) =
 proc main() =
   var DOCUMENT_ROOT: string = getCurrentDir()
   var socket = newSocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, false)
+  socket.setSockOpt(OptReusePort, true)
 
   socket.bindAddr(Port(8001))
   socket.listen()
