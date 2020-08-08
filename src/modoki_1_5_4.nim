@@ -5,6 +5,7 @@ import strutils
 import times
 import os
 import threadpool
+import uri
 
 
 const content_type_map = {
@@ -30,16 +31,14 @@ proc get_contetnt_type(ext: string): string =
 proc write_line(sock: Socket, data: string) =
   sock.send(data & "\r\n")
 
-proc server_thread(sock: Socket, num: int) {.thread.} =
+proc server_thread(sock: Socket) {.thread.} =
   defer:
     echo "finaly"
     sock.close()
 
-  echo "try num: " & num.intToStr
   var DOCUMENT_ROOT: string = getCurrentDir()
- 
 
-  let msg: string = sock.recv(1024)
+  let msg: string = sock.recv(1024).decodeUrl()
   echo msg
   
   var path: string = ""
@@ -78,17 +77,13 @@ proc main() =
 
   echo "クライアントからの接続を待ちます"
 
-  var index = 0
-
   defer:
     server.close()
   while true:
     var client: Socket = new(Socket)
     server.accept(client)
 
-    # spawn server_thread(client, index)
-    server_thread(client, index)
-    index += 1
+    spawn server_thread(client)
 
 when isMainModule:
   main()
